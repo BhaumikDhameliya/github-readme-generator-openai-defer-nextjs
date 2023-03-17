@@ -1,6 +1,11 @@
 "use client";
+import Image from "next/image";
 import { useState } from "react";
 import { useMutation, useQuery } from "react-query";
+
+import "./page.css";
+
+import GeneratingGIF from "../src/assets/gif/generating.gif";
 
 export default function Home() {
   const [userName, setUserName] = useState<string>("");
@@ -63,6 +68,16 @@ export default function Home() {
       {data && data.result && (
         <div className="result codeblock-container">
           <div className="codeblock-content">{data.result}</div>
+        </div>
+      )}
+      {hasStarted && (
+        <div className="image-container">
+          <Image
+            src="/generating.gif"
+            alt="generating your GitHub readme"
+            width={300}
+            height={300}
+          />
         </div>
       )}
     </main>
