@@ -90,6 +90,7 @@ export async function getGithubInfo(
       githubUsername,
     }
   );
+  console.log("github result----->", result);
   return {
     location: result.user.location,
     stars: (result.user.reposStars.nodes || []).reduce((sum, node) => {
@@ -113,20 +114,37 @@ export async function getGithubInfo(
   };
 }
 
-export async function generateGitHubProfile(githubUsername: string) {
-  const { languages, location, stars } = await getGithubInfo(githubUsername);
+function createPrompt({ languages, location, stars, username }: GithubInfo) {
   const prompt = `Write a funny five sentence GitHub profile description with 2 emojis maximum, with the following information:
-- Lives in ${location}
-- Wrote ${Object.entries(languages)
-    .map(([name, count]) =>
-      name === "total" || (count / languages.total) * 100 < 1
-        ? ""
-        : `${Math.ceil((count / languages.total) * 100)}% ${name}`
-    )
-    .filter((v) => !!v)
-    .join(", ")}
-- Has ${stars} GitHub stars`;
+  `;
+  if (username) {
+    prompt.concat(`- username is ${username}`);
+  }
+  if (stars && stars > 0) {
+    prompt.concat(`- Has ${stars} GitHub stars`);
+  }
+  if (languages) {
+    prompt.concat(
+      `- Wrote ${Object.entries(languages)
+        .map(([name, count]) =>
+          name === "total" || (count / languages.total) * 100 < 1
+            ? ""
+            : `${Math.ceil((count / languages.total) * 100)}% ${name}`
+        )
+        .filter((v) => !!v)
+        .join(", ")}`
+    );
+  }
+  if (location) {
+    prompt.concat(`- Lives in ${location}`);
+  }
+  return prompt;
+}
 
+export async function generateGitHubProfile(githubUsername: string) {
+  const githubInfo = await getGithubInfo(githubUsername);
+  console.log("githubInfo----->", githubInfo);
+  const prompt = createPrompt(githubInfo);
   const completion = await openai.createCompletion({
     model: "text-davinci-003",
     prompt,

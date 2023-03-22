@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getExecution } from "@defer/client";
-import generateGitHubProfile from "@/defer/generateGitHubProfile";
+import { generateGitHubProfile } from "@/defer/generateGitHubProfile";
 
 export async function POST(
   _request: NextRequest,

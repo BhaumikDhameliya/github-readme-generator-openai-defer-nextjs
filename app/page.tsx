@@ -5,44 +5,59 @@ import { useMutation, useQuery } from "react-query";
 
 import "./page.css";
 
-import GeneratingGIF from "../src/assets/gif/generating.gif";
-
 export default function Home() {
   const [userName, setUserName] = useState<string>("");
+  const [callAPI, setCallAPI] = useState(false);
 
-  const [executionId, setExecutionId] = useState<string | null>();
-  const { mutate } = useMutation(
+  // const [executionId, setExecutionId] = useState<string | null>();
+  // const { mutate } = useMutation(
+  //   async () => {
+  //     const req = await fetch(`/api/githubProfile/${userName}`, {
+  //       method: "POST",
+  //     });
+  //     return await req.json();
+  //   },
+  //   {
+  //     onSuccess: ({ id }) => {
+  //       setExecutionId(id);
+  //     },
+  //   }
+  // );
+
+  // const { data } = useQuery(
+  //   "queryJobStatus",
+  //   async () => {
+  //     const req = await fetch(`/api/githubProfile/${executionId}`, {});
+  //     return await req.json();
+  //   },
+  //   {
+  //     enabled: !!executionId,
+  //     refetchInterval: 1000,
+  //     onSuccess: (data) => {
+  //       if (data.result || data.state === "cancelled") {
+  //         setExecutionId(null);
+  //       }
+  //     },
+  //   }
+  // );
+
+  const { isLoading, error, data } = useQuery(
+    "queryJobStatus",
     async () => {
-      const req = await fetch(`/api/githubProfile/${userName}`, {
+      const req = await fetch(`/api/githubProfile/${userName.trim()}`, {
         method: "POST",
       });
       return await req.json();
     },
     {
-      onSuccess: ({ id }) => {
-        setExecutionId(id);
-      },
-    }
-  );
-
-  const { data } = useQuery(
-    "queryJobStatus",
-    async () => {
-      const req = await fetch(`/api/githubProfile/${executionId}`, {});
-      return await req.json();
-    },
-    {
-      enabled: !!executionId,
-      refetchInterval: 1000,
+      enabled: callAPI,
       onSuccess: (data) => {
-        if (data.result || data.state === "cancelled") {
-          setExecutionId(null);
-        }
+        setCallAPI(false);
       },
     }
   );
 
-  const hasStarted = data?.state === "started" || data?.state === "created";
+  // const hasStarted = data?.state === "started" || data?.state === "created";
 
   return (
     <main className="container">
@@ -55,22 +70,22 @@ export default function Home() {
           onChange={(e) => setUserName(e.target.value)}
           className="input"
           placeholder="Enter your GitHub username"
-          disabled={hasStarted}
+          disabled={isLoading}
         />
         <button
-          onClick={() => mutate()}
+          onClick={() => setCallAPI(true)}
           className="buttonPrimary"
-          disabled={hasStarted}
+          disabled={isLoading}
         >
-          {hasStarted ? "Generating ..." : "Generate"}
+          {isLoading ? "Generating ..." : "Generate"}
         </button>
       </div>
-      {data && data.result && (
+      {data && (
         <div className="result codeblock-container">
-          <div className="codeblock-content">{data.result}</div>
+          <div className="codeblock-content">{data}</div>
         </div>
       )}
-      {hasStarted && (
+      {isLoading && (
         <div className="image-container">
           <Image
             src="/generating.gif"
